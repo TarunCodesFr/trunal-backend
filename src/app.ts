@@ -6,13 +6,25 @@ import { authGuard } from './middleware/auth.middleware';
 
 const app = express();
 
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://192.168.1.1:3000',
+    process.env.FRONTEND_URL || ''
+].filter(Boolean);
+
 app.use(
     cors({
-        origin: [
-            'http://localhost:3000',
-            'http://192.168.1.1:3000',
-            process.env.FRONTEND_URL || ''
-        ].filter(Boolean),
+        origin: (origin, callback) => {
+            if (
+                !origin ||
+                allowedOrigins.includes(origin) ||
+                origin.endsWith('.vercel.app')
+            ) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         credentials: true
     })
 );
