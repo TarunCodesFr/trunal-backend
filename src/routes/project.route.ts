@@ -11,6 +11,8 @@ interface AuthRequest extends Request {
         email: string;
         role: string;
     };
+    body: any;
+    params: any;
 }
 
 // 1. Create a Project

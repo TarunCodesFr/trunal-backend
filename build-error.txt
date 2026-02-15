@@ -1,0 +1,38 @@
+﻿node.exe : Prisma 
+schema loaded from 
+prisma\schema.prisma.
+At C:\Program Files\no
+dejs\npx.ps1:29 char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (Prisma sch   
+ ema l...\schema.p    
+risma.:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+Error: An output path 
+is required for the 
+`prisma-client` 
+generator. Please 
+provide an output 
+path in your schema 
+file:
+
+generator client {
+  provider = 
+"prisma-client"
+  output   = 
+"../src/generated"
+}
+
+Note: the output path 
+is relative to the 
+schema directory.
+
