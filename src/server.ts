@@ -49,8 +49,13 @@ const io = new Server<
     SocketData
 >(server, {
     cors: {
-        origin: '*', // ⚠️ In production, replace with specific origins
-        methods: ['GET', 'POST']
+        origin: [
+            'http://localhost:3000',
+            'http://192.168.1.1:3000',
+            process.env.FRONTEND_URL || ''
+        ].filter(Boolean),
+        methods: ['GET', 'POST'],
+        credentials: true
     }
 });
 
