@@ -47,11 +47,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPrismaClientClass = getPrismaClientClass;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 const config = {
-    "previewFeatures": [],
+    "previewFeatures": [
+        "driverAdapters"
+    ],
     "clientVersion": "7.3.0",
     "engineVersion": "9d6ad21cbbceab97458517b147a6a09ff43aa735",
     "activeProvider": "postgresql",
-    "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated/client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  user_id      Int      @id @default(autoincrement())\n  email        String   @unique\n  passwordHash String\n  username     String\n  role         Role     @default(USER)\n  createdAt    DateTime @default(now())\n\n  projects Project[] @relation(\"UserProjects\")\n  messages Message[]\n}\n\nmodel Project {\n  id        Int      @id @default(autoincrement())\n  name      String\n  adminId   Int\n  createdAt DateTime @default(now())\n\n  admin    User      @relation(\"UserProjects\", fields: [adminId], references: [user_id])\n  messages Message[]\n}\n\nmodel Message {\n  id        Int      @id @default(autoincrement())\n  content   String\n  senderId  Int\n  projectId Int\n  createdAt DateTime @default(now())\n\n  sender  User    @relation(fields: [senderId], references: [user_id])\n  project Project @relation(fields: [projectId], references: [id])\n}\n\nenum Role {\n  ADMIN\n  USER\n}\n",
+    "inlineSchema": "generator client {\n  provider        = \"prisma-client\"\n  previewFeatures = [\"driverAdapters\"]\n  output          = \"../src/generated/client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  user_id      Int      @id @default(autoincrement())\n  email        String   @unique\n  passwordHash String\n  username     String\n  role         Role     @default(USER)\n  createdAt    DateTime @default(now())\n\n  projects Project[] @relation(\"UserProjects\")\n  messages Message[]\n}\n\nmodel Project {\n  id        Int      @id @default(autoincrement())\n  name      String\n  adminId   Int\n  createdAt DateTime @default(now())\n\n  admin    User      @relation(\"UserProjects\", fields: [adminId], references: [user_id])\n  messages Message[]\n}\n\nmodel Message {\n  id        Int      @id @default(autoincrement())\n  content   String\n  senderId  Int\n  projectId Int\n  createdAt DateTime @default(now())\n\n  sender  User    @relation(fields: [senderId], references: [user_id])\n  project Project @relation(fields: [projectId], references: [id])\n}\n\nenum Role {\n  ADMIN\n  USER\n}\n",
     "runtimeDataModel": {
         "models": {},
         "enums": {},
