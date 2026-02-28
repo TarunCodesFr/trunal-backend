@@ -32,4 +32,26 @@ router.get('/me', auth_middleware_1.authGuard, async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch user' });
     }
 });
+// Get all users (admin-only) — for member assignment in admin portal
+router.get('/users', auth_middleware_1.authGuard, async (req, res) => {
+    try {
+        const requestingUser = req.user;
+        if (requestingUser.role !== 'ADMIN') {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+        const users = await prisma_1.default.user.findMany({
+            select: {
+                user_id: true,
+                email: true,
+                username: true,
+                role: true
+            },
+            orderBy: { username: 'asc' }
+        });
+        res.json(users);
+    }
+    catch {
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
 exports.default = router;

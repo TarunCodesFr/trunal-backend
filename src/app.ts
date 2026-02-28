@@ -34,10 +34,12 @@ app.use(express.json());
 // routes AFTER middleware
 import authRoutes from './routes/auth.route';
 import projectRoutes from './routes/project.route';
+import projectMemberRoutes from './routes/projectMember.route';
 import seedRoutes from './routes/seed.route';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/projects/:projectId/members', projectMemberRoutes);
 app.use('/api/seed', seedRoutes);
 
 app.get('/health', (req, res) => {

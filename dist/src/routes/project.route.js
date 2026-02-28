@@ -24,6 +24,13 @@ router.post('/', auth_middleware_1.authGuard, async (req, res) => {
                 adminId: userId
             }
         });
+        // Auto-add the creator as a project member
+        await prisma_1.default.projectMember.create({
+            data: {
+                userId,
+                projectId: project.id
+            }
+        });
         res.status(201).json(project);
     }
     catch (error) {
@@ -32,14 +39,15 @@ router.post('/', auth_middleware_1.authGuard, async (req, res) => {
     }
 });
 // 2. Get All Projects for User (Admin or Member)
-// Note: Current schema only links Admin to Project.
-// Ideally, we'd have a Members relation. For now, we'll return projects created by user.
 router.get('/', auth_middleware_1.authGuard, async (req, res) => {
     try {
         const userId = req.user?.userId;
         const projects = await prisma_1.default.project.findMany({
             where: {
-                adminId: userId
+                OR: [
+                    { adminId: userId },
+                    { projectMembers: { some: { userId } } }
+                ]
             },
             include: {
                 messages: {
@@ -61,8 +69,23 @@ router.get('/', auth_middleware_1.authGuard, async (req, res) => {
 router.get('/:id/messages', auth_middleware_1.authGuard, async (req, res) => {
     try {
         const projectId = parseInt(req.params.id);
+        const userId = req.user?.userId;
+        if (!userId)
+            return res.status(401).json({ error: 'Unauthorized' });
         if (isNaN(projectId)) {
             return res.status(400).json({ error: 'Invalid project ID' });
+        }
+        // Check membership
+        const isMember = await prisma_1.default.projectMember.findUnique({
+            where: { userId_projectId: { userId, projectId } }
+        });
+        const isAdmin = await prisma_1.default.project.findFirst({
+            where: { id: projectId, adminId: userId }
+        });
+        if (!isMember && !isAdmin) {
+            return res
+                .status(403)
+                .json({ error: 'You are not a member of this project' });
         }
         const messages = await prisma_1.default.message.findMany({
             where: {
@@ -77,7 +100,7 @@ router.get('/:id/messages', auth_middleware_1.authGuard, async (req, res) => {
                 }
             },
             orderBy: {
-                createdAt: 'asc' // Oldest first for chat history
+                createdAt: 'asc'
             }
         });
         res.json(messages);
@@ -101,6 +124,18 @@ router.post('/:id/messages', auth_middleware_1.authGuard, async (req, res) => {
             return res
                 .status(400)
                 .json({ error: 'Message content is required' });
+        // Check membership
+        const isMember = await prisma_1.default.projectMember.findUnique({
+            where: { userId_projectId: { userId, projectId } }
+        });
+        const isAdmin = await prisma_1.default.project.findFirst({
+            where: { id: projectId, adminId: userId }
+        });
+        if (!isMember && !isAdmin) {
+            return res
+                .status(403)
+                .json({ error: 'You are not a member of this project' });
+        }
         const message = await prisma_1.default.message.create({
             data: {
                 content,

@@ -117,9 +117,21 @@ io.on('connection', (socket) => {
             return;
         }
 
-        // Ideally check if user has access to this project here
-        // const hasAccess = await checkProjectAccess(socket.data.userId, projectId);
-        // if (!hasAccess) return socket.emit('error_message', 'Forbidden');
+        // Check if user is a member or admin of this project
+        const userId = socket.data.userId;
+        const isMember = await prisma.projectMember.findUnique({
+            where: { userId_projectId: { userId, projectId } }
+        });
+        const isAdmin = await prisma.project.findFirst({
+            where: { id: projectId, adminId: userId }
+        });
+        if (!isMember && !isAdmin) {
+            socket.emit(
+                'error_message',
+                'You are not a member of this project'
+            );
+            return;
+        }
 
         const room = `project_${projectId}`;
         socket.join(room);

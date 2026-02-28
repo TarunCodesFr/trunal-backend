@@ -14,11 +14,21 @@ const PORT = process.env.PORT || 4001;
 const server = http_1.default.createServer(app_1.default);
 const io = new socket_io_1.Server(server, {
     cors: {
-        origin: [
-            'http://localhost:3000',
-            'http://192.168.1.1:3000',
-            process.env.FRONTEND_URL || ''
-        ].filter(Boolean),
+        origin: (origin, callback) => {
+            const allowedOrigins = [
+                'http://localhost:3000',
+                'http://192.168.1.1:3000',
+                process.env.FRONTEND_URL || ''
+            ].filter(Boolean);
+            if (!origin ||
+                allowedOrigins.includes(origin) ||
+                origin.endsWith('.vercel.app')) {
+                callback(null, true);
+            }
+            else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         methods: ['GET', 'POST'],
         credentials: true
     }
@@ -56,9 +66,18 @@ io.on('connection', (socket) => {
             socket.emit('error_message', 'Invalid Project ID');
             return;
         }
-        // Ideally check if user has access to this project here
-        // const hasAccess = await checkProjectAccess(socket.data.userId, projectId);
-        // if (!hasAccess) return socket.emit('error_message', 'Forbidden');
+        // Check if user is a member or admin of this project
+        const userId = socket.data.userId;
+        const isMember = await prisma_1.default.projectMember.findUnique({
+            where: { userId_projectId: { userId, projectId } }
+        });
+        const isAdmin = await prisma_1.default.project.findFirst({
+            where: { id: projectId, adminId: userId }
+        });
+        if (!isMember && !isAdmin) {
+            socket.emit('error_message', 'You are not a member of this project');
+            return;
+        }
         const room = `project_${projectId}`;
         socket.join(room);
         console.log(`User ${socket.data.userId} joined ${room}`);
