@@ -9,7 +9,7 @@ const app = express();
 const allowedOrigins = [
     'http://localhost:3000',
     'http://192.168.1.1:3000',
-    process.env.FRONTEND_URL || ''
+    process.env.FRONTEND_URL || 'https://trunal.in'
 ].filter(Boolean);
 
 app.use(
