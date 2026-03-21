@@ -24,24 +24,20 @@ if (
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow requests with no origin
             if (!origin) {
                 return callback(null, true);
             }
 
-            // Check exact matches
             if (allowedOrigins.includes(origin)) {
                 return callback(null, true);
             }
 
-            // Check for trunal.in domain with any protocol
             const trunalDomainRegex =
                 /^https?:\/\/([a-zA-Z0-9-]+\.)*trunal\.in(:[0-9]+)?$/;
             if (trunalDomainRegex.test(origin)) {
                 return callback(null, true);
             }
 
-            // Allow all Vercel app subdomains
             if (origin.endsWith('.vercel.app')) {
                 return callback(null, true);
             }

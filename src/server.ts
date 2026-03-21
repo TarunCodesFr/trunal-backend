@@ -55,16 +55,26 @@ const io = new Server<
                 'http://192.168.1.1:3000',
                 process.env.FRONTEND_URL || ''
             ].filter(Boolean);
-
-            if (
-                !origin ||
-                allowedOrigins.includes(origin) ||
-                origin.endsWith('.vercel.app')
-            ) {
-                callback(null, true);
-            } else {
-                callback(new Error('Not allowed by CORS'));
+            if (!origin) {
+                return callback(null, true);
             }
+
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            const trunalDomainRegex =
+                /^https?:\/\/([a-zA-Z0-9-]+\.)*trunal\.in(:[0-9]+)?$/;
+            if (trunalDomainRegex.test(origin)) {
+                return callback(null, true);
+            }
+
+            if (origin.endsWith('.vercel.app')) {
+                return callback(null, true);
+            }
+
+            console.log('CORS blocked origin:', origin);
+            callback(new Error('Not allowed by CORS'));
         },
         methods: ['GET', 'POST'],
         credentials: true
